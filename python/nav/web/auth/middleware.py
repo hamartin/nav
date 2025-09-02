@@ -21,6 +21,7 @@ import logging
 import os
 from typing import Optional
 
+from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest
 from django.utils.deprecation import MiddlewareMixin
 
@@ -30,6 +31,7 @@ from nav.web.auth.utils import (
     ensure_account,
     authorization_not_required,
     get_account,
+    get_user,
 )
 from nav.web.auth.sudo import get_sudoer
 from nav.web.utils import is_ajax
@@ -117,3 +119,19 @@ class AuthorizationMiddleware(MiddlewareMixin):
 
         new_url = get_login_url(request)
         return HttpResponseRedirect(new_url)
+
+
+class NAVAuthenticationMiddleware(MiddlewareMixin):
+    def process_request(self, request):
+        if not hasattr(request, "session"):
+            raise ImproperlyConfigured(
+                "The NAV Django authentication middleware requires session "
+                "middleware to be installed. Edit your MIDDLEWARE setting to "
+                "insert "
+                "'django.contrib.sessions.middleware.SessionMiddleware' before "
+                "'nav.web.auth.middleware.NAVAuthenticationMiddleware'."
+            )
+
+        user = get_user(request)  # NOT lazy!
+        request.user = user
+        request.account = user  # remove this eventually
