@@ -47,6 +47,7 @@ Templates
 import logging
 import json
 from operator import attrgetter
+from typing import Union
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -253,6 +254,10 @@ def dispatcher(request, navlet_id):
         _logger.error(
             '%s tried to fetch widget with id %s: %s', current_account, navlet_id, error
         )
+        if request.htmx:
+            return _handle_htmx_error_response(
+                request, None, 'This widget does not exist'
+            )
         return HttpResponse(status=404)
 
     dashboard = account_navlet.dashboard
@@ -266,7 +271,12 @@ def dispatcher(request, navlet_id):
             navlet_id,
             owner,
         )
-        return HttpResponse(status=403)
+        if request.htmx:
+            return _handle_htmx_error_response(
+                request, account_navlet, 'Not authorized to view this widget'
+            )
+        else:
+            return HttpResponse(status=403)
 
     cls = get_navlet_from_name(account_navlet.navlet)
     if not cls:
@@ -280,6 +290,24 @@ def dispatcher(request, navlet_id):
         can_edit=can_edit,
     )
     return view(request)
+
+
+def _handle_htmx_error_response(
+    request, navlet: Union[AccountNavlet, None], error_message: str
+):
+    """Render error response for htmx dispatcher requests"""
+    if navlet:
+        cls = get_navlet_from_name(navlet.navlet)
+        navlet = cls(request=request)
+
+    return render(
+        request,
+        'navlets/base.html',
+        {
+            'navlet': navlet,
+            'error_message': error_message,
+        },
+    )
 
 
 def add_user_navlet(request, dashboard_id=None):
