@@ -70,5 +70,6 @@ class VlanGraphNavlet(Navlet):
             else:
                 account_navlet.preferences['vlanid'] = vlanid
             account_navlet.save()
+            self.preferences = account_navlet.preferences
 
-        return HttpResponse()
+        return self.get(request)
