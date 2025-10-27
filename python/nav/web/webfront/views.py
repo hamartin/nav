@@ -42,6 +42,7 @@ from nav.auditlog.models import LogEntry
 from nav.models.profiles import (
     AccountDashboard,
     AccountDashboardSubscription,
+    AccountDefaultDashboard,
     AccountNavlet,
     NavbarLink,
 )
@@ -119,6 +120,9 @@ def toggle_dashboard_shared(request, did):
 
     if not is_shared:
         AccountDashboardSubscription.objects.filter(dashboard=dashboard).delete()
+        AccountDefaultDashboard.objects.exclude(account=account).filter(
+            dashboard=dashboard
+        ).delete()
 
     return _render_share_form_response(
         request,
