@@ -118,21 +118,23 @@ class Navlet(TemplateView):
         """
         raise NotImplementedError
 
-    def get_template_names(self):
+    def get_template_names(self, override_mode=None):
         """Get template name based on navlet mode"""
-        if self.mode == NAVLET_MODE_VIEW:
+        template_mode = override_mode or self.mode
+        if template_mode == NAVLET_MODE_VIEW:
             return 'navlets/%s_view.html' % self.get_template_basename()
-        elif self.mode == NAVLET_MODE_EDIT:
+        elif template_mode == NAVLET_MODE_EDIT:
             return 'navlets/%s_edit.html' % self.get_template_basename()
         else:
             return 'navlets/%s_view.html' % self.get_template_basename()
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, override_mode=None, **kwargs):
+        template_mode = override_mode or self.mode
         context = super(Navlet, self).get_context_data(**kwargs)
         context['navlet'] = self
-        if self.mode == NAVLET_MODE_VIEW:
+        if template_mode == NAVLET_MODE_VIEW:
             context = self.get_context_data_view(context)
-        elif self.mode == NAVLET_MODE_EDIT:
+        elif template_mode == NAVLET_MODE_EDIT:
             context = self.get_context_data_edit(context)
         return context
 
@@ -158,7 +160,20 @@ class Navlet(TemplateView):
             self.account_navlet.save()
             return self.get(request=request)
         else:
-            return JsonResponse(form.errors, status=400)
+            return self.handle_error_response(request, form, **kwargs)
+
+    def handle_error_response(self, request, form, **kwargs):
+        """Render error response for invalid form submissions"""
+        errors = []
+        for field, field_errors in form.errors.items():
+            for error in field_errors:
+                errors.append(str(error))
+
+        context = self.get_context_data(override_mode=NAVLET_MODE_EDIT, **kwargs)
+        context['errors'] = errors
+        return render(
+            request, self.get_template_names(override_mode=NAVLET_MODE_EDIT), context
+        )
 
     @classmethod
     def get_class(cls):
