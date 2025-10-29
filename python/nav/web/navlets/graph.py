@@ -15,6 +15,7 @@
 #
 """Widget for displaying a chart"""
 
+from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 from django import forms
 from . import Navlet, REFRESH_INTERVAL
@@ -56,7 +57,9 @@ class GraphWidget(Navlet):
         self.title = self.get_title()
         show_controls = self.preferences.get('show_controls')
         context['hide_buttons'] = 'false' if show_controls else 'true'
-        context['graph_url'] = self.preferences.get('url')
+        url = self.preferences.get('url')
+        timestamp = int(datetime.now().timestamp())
+        context['graph_url'] = f'{url}&bust={timestamp}'
         return context
 
     def get_context_data_edit(self, context):

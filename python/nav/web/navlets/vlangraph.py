@@ -15,6 +15,7 @@
 #
 """Navlet for displaying a graph giving ip count for a vlan"""
 
+from datetime import datetime
 import logging
 
 from django.http import HttpResponse
@@ -46,7 +47,8 @@ class VlanGraphNavlet(Navlet):
         vlanid = self.preferences['vlanid'] if 'vlanid' in self.preferences else None
         if self.mode == NAVLET_MODE_VIEW and vlanid:
             url = get_vlan_graph_url(vlanid)
-            context['graph_url'] = url
+            timestamp = int(datetime.now().timestamp())
+            context['graph_url'] = f'{url}&bust={timestamp}'
         elif self.mode == NAVLET_MODE_EDIT:
             context['vlans'] = Vlan.objects.filter(vlan__isnull=False).order_by('vlan')
             context['vlanid'] = vlanid
@@ -70,6 +72,5 @@ class VlanGraphNavlet(Navlet):
             else:
                 account_navlet.preferences['vlanid'] = vlanid
             account_navlet.save()
-            self.preferences = account_navlet.preferences
 
         return self.get(request)
