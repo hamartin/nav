@@ -57,7 +57,7 @@ def get_verbose_name(model, lookup):
     raise FieldDoesNotExist
 
 
-def pp_request(request: HttpRequest, function, *attributes) -> None:
+def pformat_request(request: HttpRequest, function, *attributes) -> None:
     """View ``request`` via `function``, one line per attribute
 
     Use the ``attributes`` parameter to limit what attributes are inspected.
@@ -72,7 +72,7 @@ def pp_request(request: HttpRequest, function, *attributes) -> None:
 
     Example usage::
 
-        pp_request(request, logging.getLogger(__name__).debug)
+        pformat_request(request, logging.getLogger(__name__).debug)
     """
     DICT_ATTRIBUTES = ('META', 'environ')
 
