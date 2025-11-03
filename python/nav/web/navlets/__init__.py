@@ -160,7 +160,7 @@ class Navlet(TemplateView):
 
         Make sure you're not overriding stuff with the form
         """
-        form = kwargs.get('form')
+        form = kwargs.pop('form')
         if not form:
             return HttpResponse('No form supplied', status=400)
 
@@ -169,17 +169,13 @@ class Navlet(TemplateView):
             self.account_navlet.save()
             return self.get(request=request)
         else:
-            return self.handle_error_response(request, form, **kwargs)
+            return self.handle_error_response(request, form=form, **kwargs)
 
     def handle_error_response(self, request, form, **kwargs):
         """Render error response for invalid form submissions"""
-        errors = []
-        for field, field_errors in form.errors.items():
-            for error in field_errors:
-                errors.append(str(error))
-
-        context = self.get_context_data(override_mode=NAVLET_MODE_EDIT, **kwargs)
-        context['errors'] = errors
+        context = self.get_context_data(
+            override_mode=NAVLET_MODE_EDIT, form=form, **kwargs
+        )
         return render(
             request, self.get_template_names(override_mode=NAVLET_MODE_EDIT), context
         )
