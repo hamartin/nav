@@ -62,7 +62,7 @@ class TestAuthenticate:
     def test_given_invalid_ldap_user_info_raise_permission_denied_exception(
         self, mock_authenticate, db, ldap_synced_account
     ):
-        mock_authenticate.side_effect = PermissionDenied
+        mock_authenticate.return_value = False
 
         with pytest.raises(PermissionDenied):
             LdapBackend().authenticate(
