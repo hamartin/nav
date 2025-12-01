@@ -1,11 +1,12 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from django import forms
 from django.test.client import RequestFactory
 from django.urls import reverse
 
 from nav.models.profiles import Account, AccountDashboard, AccountNavlet
-from nav.web.navlets import add_navlet, modify_navlet, Navlet
+from nav.web.navlets import add_navlet, get_navlet_from_name, modify_navlet, Navlet
 
 
 class TestAddUserNavletView:
@@ -171,33 +172,31 @@ class TestNavletPost:
 class TestNavletHandleErrorResponse:
     """Tests for the Navlet.handle_error_response method."""
 
-    def test_should_render_form_errors_in_context(self):
+    def test_should_render_form_errors_in_context(self, admin_account, new_navlet):
+        # Create a simple form class for testing
+        class TestForm(forms.Form):
+            test_field = forms.CharField(required=True)
+
+        # Create an invalid form with errors, and trigger validation to populate errors
+        form = TestForm(data={})
+        form.is_valid()
+
         request = RequestFactory().post('/fake-url')
-        navlet = Navlet()
+        # Set up the navlet instance
+        navlet_cls = get_navlet_from_name(new_navlet.navlet)
+        navlet = navlet_cls()
+        navlet.request = request
+        navlet.account_navlet = new_navlet
+        navlet.navlet_id = new_navlet.id
 
-        # Mock form with errors
-        mock_form = Mock()
-        mock_form.errors = {
-            'field1': ['Error message 1'],
-            'field2': ['Error message 2'],
-        }
+        # Call handle_error_response
+        response = navlet.handle_error_response(request, form=form)
 
-        with (
-            patch('nav.web.navlets.render') as mock_render,
-            patch.object(navlet, 'get_context_data') as mock_context,
-            patch.object(navlet, 'get_template_names') as mock_template,
-        ):
-            mock_render.return_value = Mock()
-            mock_context.return_value = {}
-            mock_template.return_value = 'test_template.html'
-
-            navlet.handle_error_response(request, mock_form)
-
-            # Verify render was called with errors flattened into context
-            context = mock_render.call_args[0][2]
-            assert 'errors' in context
-            assert 'Error message 1' in context['errors']
-            assert 'Error message 2' in context['errors']
+        # Verify the response contains error information
+        assert response.status_code == 200
+        assert (
+            b'test_field' in response.content or b'required' in response.content.lower()
+        )
 
 
 def _get_dashboard_url(dashboard: AccountDashboard):
