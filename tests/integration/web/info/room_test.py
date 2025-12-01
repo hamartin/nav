@@ -81,6 +81,13 @@ class TestAddRoomRackViews:
         assert response.status_code == 200
         assert 'room.rack.added' in response.headers['HX-Trigger']
 
+    def test_room_id_with_slash_no_crash(self, client):
+        slash_name = 'TEST/SLASH'
+        url = reverse('room-info-racks-add-rack', args=[slash_name])
+        response = client.get(url)
+        assert response.status_code == 404
+        assert slash_name in smart_str(response.content)
+
 
 class TestAddSensorModalView:
     def test_should_render_add_sensor_modal(self, client, test_rack):
