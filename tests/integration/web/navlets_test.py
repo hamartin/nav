@@ -6,7 +6,7 @@ from django.test.client import RequestFactory
 from django.urls import reverse
 
 from nav.models.profiles import Account, AccountDashboard, AccountNavlet
-from nav.web.navlets import add_navlet, get_navlet_from_name, modify_navlet, Navlet
+from nav.web.navlets import Navlet, add_navlet, get_navlet_from_name, modify_navlet
 
 
 class TestAddUserNavletView:
