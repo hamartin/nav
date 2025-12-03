@@ -163,6 +163,19 @@ def test_get_module_history_should_succeed(db, client, localhost):
     assert response.status_code == 200
 
 
+def test_get_device_history_with_htmx_should_return_partial(client, localhost):
+    url = reverse('devicehistory-view')
+    response = client.get(
+        f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+        f"&netbox={localhost.id}&submit_module=View+IP+device+history"
+    )
+
+    assert response.status_code == 200
+    assert 'devicehistory/_history_view_results.html' in [
+        t.name for t in response.templates
+    ]
+
+
 def test_device_history_view_filter_with_initial_values_is_valid():
     initial_values = DeviceHistoryViewFilter.get_initial()
     form = DeviceHistoryViewFilter(initial_values)
