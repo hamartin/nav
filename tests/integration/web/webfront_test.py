@@ -1266,6 +1266,7 @@ class TestLoadDashboardView:
         content = smart_str(response.content)
         for col_index in range(1, num_columns + 1):
             assert f'data-col="{col_index}"' in content
+        assert f'data-col="{num_columns + 1}"' not in content
 
     def test_given_navlets_in_different_columns_it_should_distribute_them_correctly(
         self, db, client, admin_account
