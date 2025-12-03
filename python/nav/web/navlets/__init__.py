@@ -48,7 +48,7 @@ import logging
 import json
 from datetime import datetime
 from operator import attrgetter
-from typing import Union
+from typing import Optional
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
@@ -309,8 +309,7 @@ def dispatcher(request, navlet_id):
             return _handle_htmx_error_response(
                 request, account_navlet, 'Not authorized to view this widget'
             )
-        else:
-            return HttpResponse(status=403)
+        return HttpResponse(status=403)
 
     cls = get_navlet_from_name(account_navlet.navlet)
     if not cls:
@@ -327,7 +326,7 @@ def dispatcher(request, navlet_id):
 
 
 def _handle_htmx_error_response(
-    request, navlet: Union[AccountNavlet, None], error_message: str
+    request, navlet: Optional[AccountNavlet], error_message: str
 ):
     """Render error response for htmx dispatcher requests"""
     if navlet:

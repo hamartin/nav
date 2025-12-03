@@ -74,6 +74,14 @@ from nav.web.webfront.utils import quick_read, tool_list
 _logger = logging.getLogger('nav.web.tools')
 
 
+COLUMNS_MAPPER = {
+    '1': 'medium-12',
+    '2': 'medium-6',
+    '3': 'medium-4',
+    '4': 'medium-3',
+}
+
+
 def index(request, did=None):
     """Controller for main page."""
     # Read files that will be displayed on front page
@@ -103,13 +111,6 @@ def index(request, did=None):
     }
 
     return render(request, 'webfront/index.html', context)
-
-
-COLUMNS_MAPPER = {
-    '2': 'medium-6',
-    '3': 'medium-4',
-    '4': 'medium-3',
-}
 
 
 def load_dashboard(request, dashboard_id=None):
