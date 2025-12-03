@@ -648,7 +648,7 @@ def save_dashboard_columns(request, did):
         "webfront/_dashboard_settings_columns_form.html",
         {
             'dashboard': dashboard,
-            'message': 'Dashboard columns updated to {}.'.format(new_column_count),
+            'message': 'Dashboard updated to {} columns.'.format(new_column_count),
         },
     )
     return trigger_client_event(response, name='nav.dashboard.reload')
