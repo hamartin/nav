@@ -115,9 +115,10 @@ def index(request, did=None):
 
 def load_dashboard(request, dashboard_id=None):
     """Renders the dashboard widgets for a given dashboard."""
-    dashboard = find_dashboard(request.account, dashboard_id)
+    account = get_account(request)
+    dashboard = find_dashboard(account, dashboard_id)
     usernavlets = dashboard.widgets.all()
-    compact = request.account.preferences.get('widget_display_density') == 'compact'
+    compact = account.preferences.get('widget_display_density') == 'compact'
 
     columns = dashboard.num_columns
     column_map = {i: [] for i in range(1, columns + 1)}
