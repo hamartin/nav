@@ -8,6 +8,11 @@ from nav.models.rack import Rack
 from nav.web.info.room.views import ADD_SENSOR_MODAL_ID
 
 
+class TestRoomInfoView:
+    def test_room_info_url_should_allow_slashes(self, client):
+        assert reverse('room-info', args=['TEST/SLASH'])
+
+
 class TestRoomNetboxInterfacesView:
     def test_should_render_about_search_modal_trigger(self, client):
         url = reverse('room-info-netboxes', args=['myroom'])
