@@ -1,8 +1,12 @@
+from datetime import datetime
+
 import pytest
 from django.urls import reverse
 
 from django.utils.encoding import smart_str
-from nav.models.manage import Netbox, Room, Location
+
+from nav.models.event import AlertHistory
+from nav.models.manage import Device, Location, Netbox, Room
 
 
 class TestSearchDeviceHistoryComponents:
@@ -110,6 +114,61 @@ class TestRegisterError:
         assert "Registered error" in smart_str(response.content)
 
 
+class TestInactiveDeviceHistoryView:
+    def test_get_inactive_device_history_should_succeed(self, client, inactive_device):
+        url = reverse('devicehistory-view')
+        response = client.get(
+            f"{url}?from_date=2023-01-01&to_date=2025-01-01&eventtype=all"
+            f"&inactive_device={inactive_device.id}",
+            follow=True,
+        )
+
+        assert response.status_code == 200
+
+    def test_get_inactive_device_history_should_redirect_with_group_by_set_to_device(
+        self, client, inactive_device
+    ):
+        url = reverse('devicehistory-search')
+        response = client.get(
+            f"{url}?from_date=2023-01-01&eventtype=all"
+            f"&inactive_device={inactive_device.id}",
+        )
+        assert response.status_code == 302
+        assert 'group_by=device' in response.url
+
+    def test_given_inactive_device_with_alert_history_then_it_should_return_results(
+        self, client, inactive_device
+    ):
+        history = create_alert_history_for_device(inactive_device, count=3)
+
+        url = reverse('devicehistory-view')
+        response = client.get(
+            f"{url}?from_date=2023-01-01&eventtype=all"
+            f"&inactive_device={inactive_device.id}",
+            follow=True,
+        )
+
+        assert response.status_code == 200
+        history = response.context['history']
+        # Test context data
+        assert inactive_device.serial in history
+        assert len(history[inactive_device.id]) == 3
+
+
+def create_alert_history_for_device(device, count=1):
+    for _ in range(count):
+        activity = AlertHistory(
+            device=device,
+            event_type_id='boxState',
+            alert_type_id=1,
+            source_id='pping',
+            start_time=datetime.now(),
+            value=42,
+        )
+        activity.save()
+    return AlertHistory.objects.filter(device=device)
+
+
 @pytest.fixture
 def new_room(db):
     location = Location(id="testlocation")
@@ -119,3 +178,11 @@ def new_room(db):
     yield room
     room.delete()
     location.delete()
+
+
+@pytest.fixture
+def inactive_device(db):
+    device = Device(serial="inactivedevice")
+    device.save()
+    yield device
+    device.delete()
