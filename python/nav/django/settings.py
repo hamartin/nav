@@ -322,7 +322,7 @@ OIDC_AUTH = {
 # Add NAV and OS-versions so they are added to exception views.
 NAV_VERSION = nav.buildconf.VERSION
 if platform.system() == "Linux":
-    OS_VERSION = distro.name(pretty=True)
+    OS_VERSION = f"Linux {distro.name(pretty=True)}"
 elif platform.system() == "Darwin":
     OS_VERSION = f"macOS {platform.mac_ver()[0]}"
 else:
